@@ -84,13 +84,11 @@ bash scripts/cover_maker.sh install           # Cover Maker in the Apps list (ne
 ## 4. Configure
 
 Point the sections at your collections, change the title or images, hide
-sections: **[configuration.md](configuration.md)**. The short version, on the
-Kindle:
+sections: **[configuration.md](configuration.md)**. The short version, from the PC:
 
-```sh
-echo '{ "k4home": { "booksCollection": "Currently Reading" } }' \
-  > /mnt/us/.eink-sdk/var/lib/kppmods/options.json
-. /mnt/us/.eink-sdk/control/env; kppmod reload k4home
+```bash
+echo '{ "k4home": { "booksCollection": "Currently Reading", "headerImage": "/mnt/us/my-logo.png" } }' > my-options.json
+bash scripts/k4home_ext.sh set-options my-options.json
 ```
 
 ## After a reboot

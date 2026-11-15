@@ -2,9 +2,9 @@
 
 Everything below is a k4 Home **option**. There are two places to set options:
 
-1. **On the Kindle, no rebuild** (recommended): kppmods merges per-extension
-   overrides from `/mnt/us/.eink-sdk/var/lib/kppmods/options.json` over the
-   manifest defaults. Create or edit that file, then reload:
+1. **An options file, no rebuild** (recommended): kppmods merges per-extension
+   overrides from its `options.json` over the manifest defaults. Write a file
+   like this on your PC, e.g. `my-options.json`:
 
    ```json
    {
@@ -16,16 +16,26 @@ Everything below is a k4 Home **option**. There are two places to set options:
    }
    ```
 
-   ```sh
-   # on the Kindle
-   . /mnt/us/.eink-sdk/control/env
-   kppmod reload k4home
+   and install it (this restarts the Home app once):
+
+   ```bash
+   bash scripts/k4home_ext.sh set-options my-options.json
    ```
 
-   The file must be valid JSON (no comments, no trailing commas); keys you leave
-   out keep their defaults. Lists replace the default list.
-   *(Read from kppmods' source at commit 172e9a9; not yet tried on the device.
-   If it has no effect, use option 2.)*
+   Keys you leave out keep their defaults; lists replace the default list. The
+   file must be valid JSON (no comments, no trailing commas); the script checks.
+
+   By hand on the Kindle: kppmods keeps the file at
+   `/mnt/us/.eink-sdk/var/lib/kppmods/options.json` but only reads its copy in
+   `/var/local/kppmods/state/`, which it refreshes when KPP Mods starts. So
+   after editing the first one (over SSH or USB), copy it over and reload:
+
+   ```sh
+   cp /mnt/us/.eink-sdk/var/lib/kppmods/options.json /var/local/kppmods/state/
+   . /mnt/us/.eink-sdk/control/env; kppmod reload
+   ```
+
+   `kppmod reload k4home` alone is not enough: it reloads the code, not the options.
 
 2. **In the repository**: edit `options` in
    [kppmods-ext/k4home/manifest.json](../kppmods-ext/k4home/manifest.json) and
@@ -44,7 +54,7 @@ Everything below is a k4 Home **option**. There are two places to set options:
 | `titleSize` | `44` | Font size of a text `title`, in layout units. |
 | `titleImage` | `""` | An image used as the title (a logo). Overrides `title`. |
 | `titleImageWidth`, `titleImageHeight` | `300`, `60` | Size of `titleImage` in layout units. |
-| `headerImage` | `"assets/vyper.png"` | The image to the right of the title. `""` hides it. |
+| `headerImage` | `"assets/vyper.png"` | The image to the right of the title (by default the author's Viper drawing). Any PNG/JPEG/SVG on the Kindle (`"/mnt/us/…"`) or in `assets/`; `""` hides it. |
 | `headerImageWidth`, `headerImageHeight` | `260`, `149` | Size of `headerImage` in layout units. |
 | `sendToObsidian` | `true` | Show the upload buttons on NOTEBOOKS and ARTICLES rows (needs k4sync, below). |
 | `k4syncScript` | `"/mnt/us/k4sync/k4sync.sh"` | Where the upload buttons find k4sync. |

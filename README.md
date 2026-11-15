@@ -5,8 +5,16 @@
 A [kppmods](https://github.com/katadelos/kppmods) extension that replaces the
 content of the Kindle Scribe's Home screen with a library dashboard.
 
-<p align="center"><img src="docs/images/k4home-device.jpg" width="460" alt="k4 Home on a Kindle Scribe"></p>
-<p align="center"><sub>An earlier build with the title "k4 library"; the default is now "scribe home", in a smaller size.</sub></p>
+<table>
+<tr>
+<td align="center" width="50%"><img src="docs/images/k4home-device.jpg" alt="k4 Home on a Kindle Scribe, set up with collections"></td>
+<td align="center" width="50%"><img src="docs/images/k4home-fresh-install.png" alt="k4 Home right after installing, with no collections"></td>
+</tr>
+<tr>
+<td align="center"><sub>Set up: collections, notebooks and a calendar (an earlier build, titled "k4 library").</sub></td>
+<td align="center"><sub>Right after installing, before any setup: each section says what it is looking for.</sub></td>
+</tr>
+</table>
 
 - **BOOKS**: a collection of your choice (default `reading`) with covers,
   progress and "% read"; **+** opens the stock "Add or remove items" screen.
@@ -18,9 +26,10 @@ content of the Kindle Scribe's Home screen with a library dashboard.
   covers to Send-to-Kindle PDFs, and **Send to Obsidian** exports notebooks and
   annotated PDFs to an Obsidian vault.
 - **Configurable** from a JSON file on the Kindle: which collections (by name)
-  feed each section, the title or your own logo, the header image, hidden
-  sections, the Obsidian buttons. A collection that does not exist only shows a
-  hint listing the ones that do; nothing crashes.
+  feed each section, the title or your own logo, the header image (the Viper
+  drawing is only the default; use any image or none), hidden sections, the
+  Obsidian buttons. A collection that does not exist only shows a hint listing
+  the ones that do; nothing crashes. See [docs/configuration.md](docs/configuration.md).
 
 The stock top bar, search, footer, Library, reader and notebooks are untouched;
 everything runs inside the stock Home app through kppmods, and **a reboot always

@@ -6,6 +6,7 @@
 #   bash scripts/k4home_ext.sh deploy-device      build + install k4 Home (also after every change)
 #   bash scripts/k4home_ext.sh install-koreader   Store cart -> KOReader button (needs kppmods-koreader)
 #   bash scripts/k4home_ext.sh install-k4sync     "Send to Obsidian" files (+ k4sync.conf template)
+#   bash scripts/k4home_ext.sh set-options FILE   install FILE as kppmods' options.json and reload
 #   bash scripts/k4home_ext.sh build              build only -> $K4_OUT/k4home
 #   bash scripts/k4home_ext.sh build-host         build only -> $K4_OUT/host.js
 #   bash scripts/k4home_ext.sh deploy-emu         emulator (127.0.0.1:2222), see emulator/README.md
@@ -143,6 +144,16 @@ install-k4sync)
         on_kindle "mv /mnt/us/k4sync/k4sync.conf.example /mnt/us/k4sync/k4sync.conf"
         echo "now edit /mnt/us/k4sync/k4sync.conf (WEBDAV_URL, WEBDAV_USER, WEBDAV_PASS)"
     fi
+    ;;
+set-options)
+    F="${2:?usage: $0 set-options FILE.json}"
+    python3 -m json.tool "$F" >/dev/null || { echo "$F is not valid JSON" >&2; exit 1; }
+    check_kindle
+    # kppmods keeps its state on the userstore and copies it to /var/local only when
+    # KPP Mods starts, so write both copies; a full reload then rebuilds its config.
+    on_kindle "cat > /mnt/us/.eink-sdk/var/lib/kppmods/options.json &&
+        cp /mnt/us/.eink-sdk/var/lib/kppmods/options.json /var/local/kppmods/state/options.json" <"$F"
+    bash "$(dirname "$0")/kppmod_reload_device.sh"
     ;;
 deploy-emu)
     build
