@@ -1,0 +1,5 @@
+# Everything that runs on the Kindle or in WSL needs LF line endings.
+* text=auto eol=lf
+*.png binary
+*.webp binary
+*.jpg binary

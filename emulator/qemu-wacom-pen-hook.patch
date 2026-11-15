@@ -1,0 +1,39 @@
+diff --git a/hw/i2c/wacom_emr.c b/hw/i2c/wacom_emr.c
+index 130977e..d24d81f 100644
+--- a/hw/i2c/wacom_emr.c
++++ b/hw/i2c/wacom_emr.c
+@@ -13,6 +13,7 @@
+ #include "qemu/log.h"
+ #include "qemu/module.h"
+ #include "qemu/bswap.h"
++#include "qapi/error.h"
+ 
+ static const uint8_t wacom_descriptor[30] = {
+     0x1e, 0, 0, 1, 0x1f, 3, 2, 0, 3, 0, 0x11, 0, 0, 0, 0, 0,
+@@ -443,6 +444,18 @@ static const VMStateDescription wacom_vmstate = {
+     },
+ };
+ 
++/* Test hook: qom-set <stylus> pen "x y pressure [proximity [eraser]]". */
++static void wacom_set_pen(Object *obj, const char *value, Error **errp)
++{
++    unsigned x, y, pressure, proximity = 1, eraser = 0;
++    if (sscanf(value, "%u %u %u %u %u", &x, &y, &pressure, &proximity,
++               &eraser) < 3) {
++        error_setg(errp, "expected \"x y pressure [proximity [eraser]]\"");
++        return;
++    }
++    wacom_emr_set_input(DEVICE(obj), x, y, pressure, proximity, eraser);
++}
++
+ static void wacom_init(Object *obj)
+ {
+     WacomEMRState *s = WACOM_EMR(obj);
+@@ -455,6 +468,7 @@ static void wacom_init(Object *obj)
+     object_property_add_uint64_ptr(obj, "resets", &s->resets, OBJ_PROP_FLAG_READ);
+     object_property_add_uint64_ptr(obj, "sleep-commands", &s->sleep_commands, OBJ_PROP_FLAG_READ);
+     object_property_add_uint64_ptr(obj, "unsupported-commands", &s->unsupported_commands, OBJ_PROP_FLAG_READ);
++    object_property_add_str(obj, "pen", NULL, wacom_set_pen);
+ }
+ 
+ static const Property wacom_properties[] = {

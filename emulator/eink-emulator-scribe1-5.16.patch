@@ -1,0 +1,58 @@
+diff --git a/eink_emulator/images/rootfs.py b/eink_emulator/images/rootfs.py
+index 8a1e312..58385d9 100644
+--- a/eink_emulator/images/rootfs.py
++++ b/eink_emulator/images/rootfs.py
+@@ -766,8 +766,9 @@ def bellatrix3_patch_framework(contents: str) -> str:
+     end = contents.find("  set -e\n  f_log I framework starting", start)
+     if start < 0 or end < 0:
+         raise SystemExit("stock Bellatrix3 runtime permission block was not found")
+-    if contents[start:end].count("'{}' \\;") != 5:
+-        raise SystemExit("expected five stock Bellatrix3 find -exec actions")
++    # 5.16.x firmware has the older two-find block (DIRLIST loop + /var/local/root).
++    if contents[start:end].count("'{}' \\;") not in (2, 5):
++        raise SystemExit("expected two or five stock Bellatrix3 find -exec actions")
+     replacement = (
+         f"  # {BELLATRIX3_FRAMEWORK_MARKER}.\n"
+         "  /usr/sbin/qemu-runtime-permissions framework\n"
+@@ -851,10 +852,12 @@ def prepare_bellatrix3(
+             raise SystemExit("stock sysctl respawn declaration was not found exactly once")
+         return contents.replace(old, "\nrespawn\nnormal exit 0\n", 1)
+ 
+-    transform_file(
+-        output, "/etc/upstart/sysctl.conf", "0100644",
+-        stop_successful_sysctl,
+-    )
++    # 5.16.x firmware has no separate sysctl job.
++    if file_exists(output, "/etc/upstart/sysctl.conf"):
++        transform_file(
++            output, "/etc/upstart/sysctl.conf", "0100644",
++            stop_successful_sysctl,
++        )
+     install_overrides(image=output, group="bellatrix3", replacements={
+         "/usr/sbin/qemu-runtime-permissions": (
+             "qemu-runtime-permissions", "0100755",
+@@ -885,4 +888,8 @@ def prepare_bellatrix3(
+         "set_inode_field /data/init_bin mode 040755",
+     ], writable=True)
+     replace_file(output, waveform, "/data/init_bin/wf_lut.gz", "0100644")
++    # 5.16.x Scribe firmware still loads g_mass_storage from the userstore job,
++    # which claims the only UDC before qemu-usb-network loads g_ether.
++    transform_file(output, "/etc/upstart/filesystems_userstore.conf", "0100644",
++                   remove_legacy_usb_storage)
+     prepare_usb_network(output, mass_storage=False)
+diff --git a/guest-overrides/bellatrix3/console.conf b/guest-overrides/bellatrix3/console.conf
+index 1d3d221..924a2b2 100644
+--- a/guest-overrides/bellatrix3/console.conf
++++ b/guest-overrides/bellatrix3/console.conf
+@@ -8,5 +8,10 @@ respawn limit 10 60
+ 
+ script
+     echo CS8_DEVELOPMENT_CONSOLE_READY > /dev/console
+-    exec /usr/bin/setsid -f -w /sbin/getty -L -i -n -l /bin/sh 921600 /dev/ttyS0
++    # 5.16.x ships an old util-linux setsid without -f/-w; getty becomes the
++    # session leader itself there (Upstart already starts jobs in a new session).
++    if /usr/bin/setsid -w true 2>/dev/null; then
++        exec /usr/bin/setsid -f -w /sbin/getty -L -i -n -l /bin/sh 921600 /dev/ttyS0
++    fi
++    exec /sbin/getty -L -i -n -l /bin/sh 921600 /dev/ttyS0
+ end script

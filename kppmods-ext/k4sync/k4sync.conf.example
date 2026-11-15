@@ -1,0 +1,12 @@
+# Copy to /mnt/us/k4sync/k4sync.conf
+# WebDAV inbox of the Pi's vault-inbox stack (no trailing slash)
+WEBDAV_URL=http://raspberrypi.local:8080
+WEBDAV_USER=kindle
+WEBDAV_PASS=change-me
+
+# Every article in this collection is sent (with or without handwriting);
+# other Send-to-Kindle PDFs only once you have written on them
+COLLECTION=articles
+
+# Needed to add handwriting to PDFs; plain articles and notebooks work without it
+KOREADER=/mnt/us/koreader

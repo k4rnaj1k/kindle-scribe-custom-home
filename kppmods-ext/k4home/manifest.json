@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "id": "k4home",
+  "version": "0.13.0",
+  "title": "k4 Home",
+  "ui": ["main.js"],
+  "options": {
+    "booksCollection": "reading",
+    "articlesCollection": "articles",
+    "calendarTitle": "ReCalendar",
+    "hideSections": [],
+    "title": "",
+    "titleSize": 44,
+    "titleImage": "",
+    "headerImage": "assets/vyper.png",
+    "headerImageWidth": 260,
+    "headerImageHeight": 149,
+    "sendToObsidian": true
+  },
+  "needs": ["ui-host"]
+}

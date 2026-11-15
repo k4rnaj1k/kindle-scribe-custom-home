@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 60" width="48" height="60">
+  <!-- Notebook page with a folded corner and ruled lines. -->
+  <path d="M6 3 H32 L44 15 V57 H6 Z" fill="#fff" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M32 3 V15 H44" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+  <g stroke="#000" stroke-width="3" stroke-linecap="round">
+    <line x1="13" y1="26" x2="37" y2="26"/>
+    <line x1="13" y1="35" x2="37" y2="35"/>
+    <line x1="13" y1="44" x2="29" y2="44"/>
+  </g>
+</svg>

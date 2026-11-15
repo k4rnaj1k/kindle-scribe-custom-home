@@ -1,0 +1,20 @@
+# Obsolete experiments kept locally only (QR links, bytecode-patch route, probes)
+_attic/
+
+# Proprietary firmware artifacts and decompiled Amazon code: never publish
+device/
+analysis/
+
+# Personal device data (cc.db, library, crash dumps, screenshots of the library)
+backups/
+logs/
+
+# Local secrets / config
+*.env
+.env
+k4sync.conf
+
+# Build output / caches
+__pycache__/
+*.pyc
+node_modules/

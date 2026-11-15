@@ -1,0 +1,105 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      KPPMODS_DIR: ${{ github.workspace }}/../kppmods
+      VENV: ${{ github.workspace }}/../venv
+      K4_OUT: ${{ github.workspace }}/../out
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Version
+        id: version
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("kppmods-ext/k4home/manifest.json"))["version"])')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF_NAME#v}" != "$version" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match manifest version $version"
+            exit 1
+          fi
+
+      - name: Set up kppmods build tools
+        run: bash scripts/k4home_ext.sh setup
+
+      - name: Build k4 Home
+        run: bash scripts/k4home_ext.sh build
+
+      # Only checks that the 5.16 Home hook still builds. host.js is kppmods'
+      # code, which has no license file, so it is not published.
+      - name: Build UI host (check only)
+        run: bash scripts/k4home_ext.sh build-host
+
+      - name: Shell syntax
+        run: for f in scripts/*.sh kppmods-ext/*/*.sh; do bash -n "$f"; done
+
+      - name: k4sync unit tests
+        run: |
+          sudo apt-get install -y -qq lua5.1 >/dev/null
+          cd kppmods-ext/k4sync && lua5.1 test_k4sync.lua
+
+      - name: Package
+        run: |
+          v=${{ steps.version.outputs.version }}
+          mkdir -p dist
+          tar -C "$K4_OUT" -czf "dist/k4home-$v.tar.gz" k4home
+          (cd "$K4_OUT" && zip -qr "$GITHUB_WORKSPACE/dist/k4home-$v.zip" k4home)
+          tar -czf "dist/k4home-extras-$v.tar.gz" \
+            kppmods-ext/koreader-shortcut kppmods-ext/k4sync kppmods-ext/cover-maker
+          (cd dist && sha256sum * > SHA256SUMS)
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k4home-${{ steps.version.outputs.version }}
+          path: dist/
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'EOF'
+          **k4 Home** for the Kindle Scribe (firmware 5.16.6.1), a kppmods extension.
+
+          - `k4home-*.tar.gz` / `.zip`: the built extension (`k4home/`: main.js, manifest.json, assets).
+          - `k4home-extras-*.tar.gz`: KOReader shortcut, Send to Obsidian (k4sync), Cover Maker.
+
+          Install with `K4_PREBUILT=path/to/k4home bash scripts/k4home_ext.sh deploy-device`,
+          or copy `k4home/` to `/mnt/us/.eink-sdk/usr/lib/kppmods/extensions/` and run
+          `kppmod reload`. The 5.16 UI host is not included (it is built from kppmods):
+          run `scripts/k4home_ext.sh setup` and `install-host` once. See docs/install.md.
+          EOF
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" --title "k4 Home $GITHUB_REF_NAME" \
+            --notes-file notes.md --generate-notes
