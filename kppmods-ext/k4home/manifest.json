@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "k4home",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "title": "k4 Home",
   "ui": ["main.js"],
   "options": {
