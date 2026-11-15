@@ -1,7 +1,5 @@
 # k4 Home — a custom Home screen for the Kindle Scribe
 
-[![build](https://github.com/k4rnaj1k/kindle-scribe-custom-home/actions/workflows/build.yml/badge.svg)](https://github.com/k4rnaj1k/kindle-scribe-custom-home/actions/workflows/build.yml)
-
 A [kppmods](https://github.com/katadelos/kppmods) extension that replaces the
 content of the Kindle Scribe's Home screen with a library dashboard.
 
